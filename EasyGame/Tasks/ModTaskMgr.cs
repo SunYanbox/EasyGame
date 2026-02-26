@@ -33,7 +33,7 @@ public class ModTaskMgr
         Task.WaitAll(tasks.ToArray());
     }
 
-    private void ExecuteTask(ModTask task)
+    public static void ExecuteTask(ModTask task)
     {
         if (!task.Condition())
         {
@@ -41,6 +41,7 @@ public class ModTaskMgr
             return;
         }
         Stopwatch stopwatch = new();
+        stopwatch.Start();
         ModLogger.Debug($"开始执行任务: [{task.Name}]:");
         try
         {
