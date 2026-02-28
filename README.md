@@ -27,7 +27,7 @@
         // Whether to adjust ammo stack size
         "AdjustAmmoStack": true,
         // Whether to set all items as examined by default
-        "AllExaminedByDefault": true
+        "AllExaminedByDefault": false
     },
     // Stimulator configuration settings
     "StimulatorConfig": {
@@ -92,7 +92,7 @@
         // 是否调整弹药的堆叠数量
         "AdjustAmmoStack": true,
         // 是否默认所有物品为已检视状态
-        "AllExaminedByDefault": true
+        "AllExaminedByDefault": false
     },
     // 刺激剂配置参数
     "StimulatorConfig": {
