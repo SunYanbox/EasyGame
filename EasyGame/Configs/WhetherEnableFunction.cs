@@ -50,5 +50,6 @@ record WhetherEnableFunction
 
     /// <summary> 是否令所有物品默认已检视 </summary>
     [JsonInclude]
-    public bool AllExaminedByDefault { get; set; } = true;
+    // ReSharper disable once RedundantDefaultMemberInitializer
+    public bool AllExaminedByDefault { get; set; } = false;
 }

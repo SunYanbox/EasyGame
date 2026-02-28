@@ -1,0 +1,32 @@
+{
+  "EnableFunction": {
+    "IsUnlockAllItemsSellLimit": true,
+    "ShowMapToChoiceScene": true,
+    "EnterGameItemLimit": true,
+    "EnergyHydrationModify": true,
+    "RaidTimeModify": true,
+    "AmmoTimeModify": true,
+    "MaxActiveOfferCountModify": true,
+    "AdjustLabsAccess": true,
+    "AdjustLabysAccess": true,
+    "AdjustSimulatorMaxHpResource": true,
+    "AdjustAmmoStack": true,
+    "AllExaminedByDefault": false
+  },
+  "StimulatorConfig": {
+    "UseTimes": 10,
+    "PriceModify": 5,
+    "Weight": 0.5
+  },
+  "EnterGameItemLimit": 3600,
+  "HealthModify": 1.5,
+  "EnergyHydrationModify": 1.5,
+  "RaidTimeModify": 3,
+  "TakeInAmmoTimeModify": 0.05,
+  "TakeOutAmmoTimeModify": 0.05,
+  "CheckAmmoTimeModify": 0.45,
+  "MaxActiveOfferCountModify": 7,
+  "LabsAccessMaximumNumberOfUsage": 10,
+  "LabysAccessMaximumNumberOfUsage": 10,
+  "AmmoStack": 300
+}
