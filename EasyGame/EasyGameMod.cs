@@ -45,7 +45,7 @@ public class EasyGameMod(
     {
         string pathToModData = Path.Combine(modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly()), "data");
 
-        ModTaskMgr.ExecuteTask(new ModTask
+        _modTaskMgr.ExecuteTask(new ModTask
         {
             Name = "加载模组配置信息",
             Order = 0,
