@@ -25,7 +25,7 @@ public class EasyGameMod(
     JsonUtil jsonUtil,
     ItemHelper itemHelper) : IOnLoad
 {
-    private ModTaskMgr _modTaskMgr = new();
+    private readonly ModTaskMgr _modTaskMgr = new();
     private ModConfigData? _modConfigData;
     private static ModLogger ModLogger => ModTaskMgr.ModLogger;
     
@@ -45,30 +45,38 @@ public class EasyGameMod(
     {
         string pathToModData = Path.Combine(modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly()), "data");
 
-        ModTaskMgr.ExecuteTask(new ModTask
+        _modTaskMgr.ExecuteTask(new ModTask
         {
             Name = "加载模组配置信息",
             Order = 0,
             Condition = () => true,
             Callback = async void () =>
             {
-                Directory.CreateDirectory(pathToModData);
                 try
                 {
-                    _modConfigData = modHelper.GetJsonDataFromFile<ModConfigData>(pathToModData, "config.json");
+                    Directory.CreateDirectory(pathToModData);
+                    try
+                    {
+                        _modConfigData = modHelper.GetJsonDataFromFile<ModConfigData>(pathToModData, "config.json");
+                    }
+                    catch (Exception e)
+                    {
+                        ModLogger.Error("加载模组配置失败, 将尝试用默认值", e);
+                        _modConfigData = new ModConfigData();
+                        try
+                        {
+                            await File.WriteAllTextAsync(Path.Combine(pathToModData, "config.json"),
+                                jsonUtil.Serialize(_modConfigData), new UTF8Encoding());
+                        }
+                        catch (Exception exception)
+                        {
+                            ModLogger.Error("保存默认模组配置失败", exception);
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
-                    ModLogger.Error("加载模组配置失败, 将尝试用默认值", e);
-                    _modConfigData = new ModConfigData();
-                    try
-                    {
-                        await File.WriteAllTextAsync(Path.Combine(pathToModData, "config.json"), jsonUtil.Serialize(_modConfigData), new UTF8Encoding());
-                    }
-                    catch (Exception exception)
-                    {
-                        ModLogger.Error("保存默认模组配置失败", exception);
-                    }
+                    ModLogger.Error("加载模组配置、尝试使用默认配置或保存默认配置文件时出现错误", e);
                 }
             }
         });
@@ -80,84 +88,84 @@ public class EasyGameMod(
         {
             Callback = AdjustMaxInRaidAndLobby,
             Order = 10_0000,
-            Condition = () => _modConfigData?.EnableFunction?.EnterGameItemLimit ?? false,
+            Condition = () => _modConfigData?.EnableFunction.EnterGameItemLimit ?? false,
             Name = "根据自定义数据调整带入物品限制",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = ShowLabyrinthInChoiceMenu,
             Order = 1,
-            Condition = () => _modConfigData?.EnableFunction?.ShowMapToChoiceScene ?? false,
+            Condition = () => _modConfigData?.EnableFunction.ShowMapToChoiceScene ?? false,
             Name = "使得迷宫地图显示在地图选择界面",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = RemoveRestrictionOnSellingItemsInFlea,
             Order = 50_0000,
-            Condition = () => _modConfigData?.EnableFunction?.IsUnlockAllItemsSellLimit ?? false,
+            Condition = () => _modConfigData?.EnableFunction.IsUnlockAllItemsSellLimit ?? false,
             Name = "解除物品在跳蚤售卖限制",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = EnergyHydrationModify,
             Order = 1,
-            Condition = () => _modConfigData?.EnableFunction?.EnergyHydrationModify ?? false,
+            Condition = () => _modConfigData?.EnableFunction.EnergyHydrationModify ?? false,
             Name = "调整所有存档的基础血量与能量, 水分",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = RaidTimeAdjust,
             Order = 1,
-            Condition = () => _modConfigData?.EnableFunction?.RaidTimeModify ?? false,
+            Condition = () => _modConfigData?.EnableFunction.RaidTimeModify ?? false,
             Name = "战局时长修改",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = MagazineDataModification,
             Order = 5000,
-            Condition = () => _modConfigData?.EnableFunction?.AmmoTimeModify ?? false,
+            Condition = () => _modConfigData?.EnableFunction.AmmoTimeModify ?? false,
             Name = "弹夹装单卸弹检查弹匣时间修改",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = FleaPendingOrderLimitModification,
             Order = 1,
-            Condition = () => _modConfigData?.EnableFunction?.MaxActiveOfferCountModify ?? false,
+            Condition = () => _modConfigData?.EnableFunction.MaxActiveOfferCountModify ?? false,
             Name = "每级跳蚤市场挂单上限倍率",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = AdjustLabsAccess,
             Order = 10,
-            Condition = () => _modConfigData?.EnableFunction?.AdjustLabsAccess ?? false,
+            Condition = () => _modConfigData?.EnableFunction.AdjustLabsAccess ?? false,
             Name = "调整实验室访问卡次数",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = AdjustSimulator,
             Order = 500,
-            Condition = () => _modConfigData?.EnableFunction?.AdjustSimulatorMaxHpResource ?? false,
+            Condition = () => _modConfigData?.EnableFunction.AdjustSimulatorMaxHpResource ?? false,
             Name = "修改所有药剂耐久(吗啡除外)",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = AdjustLabysAccess,
             Order = 10,
-            Condition = () => _modConfigData?.EnableFunction?.AdjustLabysAccess ?? false,
+            Condition = () => _modConfigData?.EnableFunction.AdjustLabysAccess ?? false,
             Name = "调整迷宫访问卡次数",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = AdjustAmmoStackMaxSize,
             Order = 10,
-            Condition = () => _modConfigData?.EnableFunction?.AdjustAmmoStack ?? false,
+            Condition = () => _modConfigData?.EnableFunction.AdjustAmmoStack ?? false,
             Name = "修改所有弹药堆叠(Max规则)",
         });
         _modTaskMgr.AddTask(new ModTask
         {
             Callback = AllExaminedByDefault,
             Order = 10000,
-            Condition = () => _modConfigData?.EnableFunction?.AllExaminedByDefault ?? false,
+            Condition = () => _modConfigData?.EnableFunction.AllExaminedByDefault ?? false,
             Name = "默认检视所有物品",
         });
     }
@@ -225,18 +233,18 @@ public class EasyGameMod(
             foreach (TemplateSide? side in new[] { profileSides.Bear, profileSides.Usec })
             {
                 if (side?.Character?.Health?.BodyParts == null) continue;
-                foreach (var (_, bodyPartHealth) in side.Character.Health.BodyParts)
+                foreach ((string _, BodyPartHealth bodyPartHealth) in side.Character.Health.BodyParts)
                 {
-                    if (bodyPartHealth?.Health?.Maximum != null)
+                    if (bodyPartHealth.Health?.Maximum != null)
                     {
-                        bodyPartHealth.Health.Maximum *= _modConfigData.HealthModify;
+                        bodyPartHealth.Health.Maximum *= _modConfigData?.HealthModify ?? 1.0d;
                     }
                 }
                 if (side.Character.Health?.Hydration?.Maximum == null ||
                     side.Character.Health?.Energy?.Maximum == null)
                     continue;
-                side.Character.Health.Energy.Maximum *= _modConfigData.EnergyHydrationModify;
-                side.Character.Health.Hydration.Maximum *= _modConfigData.EnergyHydrationModify;
+                side.Character.Health.Energy.Maximum *= _modConfigData?.EnergyHydrationModify ?? 1.0d;
+                side.Character.Health.Hydration.Maximum *= _modConfigData?.EnergyHydrationModify ?? 1.0d;
             }
             successChange.Add(profileName);
         }
@@ -253,9 +261,9 @@ public class EasyGameMod(
         List<string> mapChangeResults = [];
         foreach ((string mapName, Location location) in locations.GetDictionary())
         {
-            if (location.Base?.EscapeTimeLimit == null) continue;
+            if (location.Base.EscapeTimeLimit == null) continue;
             double oldTimeLimit = location.Base.EscapeTimeLimit.Value;
-            location.Base.EscapeTimeLimit *= _modConfigData.RaidTimeModify;
+            location.Base.EscapeTimeLimit *= _modConfigData?.RaidTimeModify ?? 1.0d;
             location.Base.EscapeTimeLimit = Math.Max(1, location.Base.EscapeTimeLimit ?? 0);
             mapChangeResults.Add($"地图{mapName}的对局时间已修改: {oldTimeLimit}min -> {location.Base.EscapeTimeLimit ?? -1}min");
         }
@@ -269,9 +277,9 @@ public class EasyGameMod(
     public void MagazineDataModification()
     {
         Globals globals = databaseService.GetGlobals();
-        globals.Configuration.BaseCheckTime *= _modConfigData.CheckAmmoTimeModify;
-        globals.Configuration.BaseLoadTime *= _modConfigData.TakeInAmmoTimeModify;
-        globals.Configuration.BaseUnloadTime *= _modConfigData.TakeOutAmmoTimeModify;
+        globals.Configuration.BaseCheckTime *= _modConfigData?.CheckAmmoTimeModify ?? 1.0d;
+        globals.Configuration.BaseLoadTime *= _modConfigData?.TakeInAmmoTimeModify ?? 1.0d;
+        globals.Configuration.BaseUnloadTime *= _modConfigData?.TakeOutAmmoTimeModify ?? 1.0d;
         ModLogger.Info($"弹夹相关修改结果: 装弹({globals.Configuration.BaseLoadTime}s) 卸弹({globals.Configuration.BaseUnloadTime}s) 检查({globals.Configuration.BaseCheckTime}s)");
     }
 
@@ -286,7 +294,7 @@ public class EasyGameMod(
         foreach (MaxActiveOfferCount offer in globals.Configuration.RagFair.MaxActiveOfferCount)
         {
             offer.Count = Math.Max(1, offer.Count);
-            offer.Count *= _modConfigData.MaxActiveOfferCountModify;
+            offer.Count *= _modConfigData?.MaxActiveOfferCountModify ?? 1.0d;
             countChange.Add($"{offer.CountForSpecialEditions} -> {offer.Count}");
         }
         ModLogger.Debug(result + string.Join(", ", countChange));
@@ -297,9 +305,9 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustSimulator()
     {
-        Dictionary<MongoId,TemplateItem> itemTempaltes = databaseService.GetTables().Templates.Items;
+        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
         Dictionary<MongoId,double> itemPrices = databaseService.GetTables().Templates.Prices;
-        KeyValuePair<MongoId,TemplateItem>[] simulatorItems = itemTempaltes
+        KeyValuePair<MongoId,TemplateItem>[] simulatorItems = itemTemplates
             .Where(kvp => kvp.Value.Parent.ToString() == BaseClasses.STIMULATOR 
                           && kvp.Value.Id.ToString() != ItemTpl.DRUGS_MORPHINE_INJECTOR).ToArray();
         ModLogger.Debug($"获取到的针剂数量有: {simulatorItems.Length}个");
@@ -342,8 +350,8 @@ public class EasyGameMod(
 
     public void AllExaminedByDefault()
     {
-        Dictionary<MongoId,TemplateItem> itemTempaltes = databaseService.GetTables().Templates.Items;
-        KeyValuePair<MongoId,TemplateItem>[] items = itemTempaltes.Where(kvp => kvp.Value.Properties?.ExaminedByDefault == false).ToArray();
+        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
+        KeyValuePair<MongoId,TemplateItem>[] items = itemTemplates.Where(kvp => kvp.Value.Properties?.ExaminedByDefault == false).ToArray();
         ModLogger.Debug($"默认未检视物品有: {items.Length}个");
         List<MongoId> noProperties = [];
         foreach ((MongoId tpl, TemplateItem templateItem) in items)
@@ -369,14 +377,14 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustAmmoStackMaxSize()
     {
-        Dictionary<MongoId, TemplateItem> itemTempaltes = databaseService.GetTables().Templates.Items;
+        Dictionary<MongoId, TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
         MongoId[] ammo = itemHelper.GetItemTplsOfBaseType(BaseClasses.AMMO.ToString()).ToArray();
         ModLogger.Debug($"准备修改弹药堆叠时获取到弹药类型: {ammo.Length}个");
         List<MongoId> cantFound = [];
         List<string> successChange = [];
         foreach (MongoId tpl in ammo)
         {
-            if (!itemTempaltes.TryGetValue(tpl, out TemplateItem? templateItem))
+            if (!itemTemplates.TryGetValue(tpl, out TemplateItem? templateItem))
             {
                 cantFound.Add(tpl);
                 continue;
@@ -402,8 +410,8 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustLabsAccess()
     {
-        Dictionary<MongoId,TemplateItem> itemTempaltes = databaseService.GetTables().Templates.Items;
-        TemplateItem templateItem = itemTempaltes[ItemTpl.KEYCARD_TERRAGROUP_LABS_ACCESS];
+        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
+        TemplateItem templateItem = itemTemplates[ItemTpl.KEYCARD_TERRAGROUP_LABS_ACCESS];
         ModLogger.Debug($"已获取到实验室访问卡: {templateItem.Id}, {templateItem.Name}, 可用次数: {templateItem.Properties?.MaximumNumberOfUsage}");
         if (templateItem.Properties != null)
         {
@@ -419,8 +427,8 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustLabysAccess()
     {
-        Dictionary<MongoId,TemplateItem> itemTempaltes = databaseService.GetTables().Templates.Items;
-        TemplateItem templateItem = itemTempaltes[ItemTpl.KEYCARD_LABRYS_ACCESS];
+        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
+        TemplateItem templateItem = itemTemplates[ItemTpl.KEYCARD_LABRYS_ACCESS];
         ModLogger.Debug($"已获取到迷宫访问卡: {templateItem.Id}, {templateItem.Name}, 可用次数: {templateItem.Properties?.MaximumNumberOfUsage}");
         if (templateItem.Properties != null)
         {
