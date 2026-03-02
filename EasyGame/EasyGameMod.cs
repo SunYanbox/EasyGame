@@ -43,6 +43,8 @@ public class EasyGameMod(
 
         ClearCache();
 
+        ModLogger.Info(_modTaskMgr.GetTaskStats());
+
         sptLogger.Info(ModLogger.Info("模组加载/修改完毕"));
         return Task.CompletedTask;
     }
