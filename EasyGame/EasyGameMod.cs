@@ -28,6 +28,8 @@ public class EasyGameMod(
     private readonly ModTaskMgr _modTaskMgr = new();
     private ModConfigData? _modConfigData;
     private static ModLogger ModLogger => ModTaskMgr.ModLogger;
+    private Dictionary<MongoId, TemplateItem>? _itemTemplatesCache;
+    private Globals? _globalsCache;
     
     public Task OnLoad()
     {
@@ -35,10 +37,44 @@ public class EasyGameMod(
 
         InitModTasks();
 
+        InitCache();
+
         _modTaskMgr.RunAllTasks();
+
+        ClearCache();
 
         sptLogger.Info(ModLogger.Info("模组加载/修改完毕"));
         return Task.CompletedTask;
+    }
+
+    private void InitCache()
+    {
+        _modTaskMgr.ExecuteTask(new ModTask
+        {
+            Name = "初始化缓存",
+            Order = 0,
+            Condition = () => true,
+            Callback = () =>
+            {
+                _itemTemplatesCache = databaseService.GetItems();
+                _globalsCache = databaseService.GetGlobals();
+            }
+        });
+    }
+
+    private void ClearCache()
+    {
+        _modTaskMgr.ExecuteTask(new ModTask
+        {
+            Name = "清理缓存",
+            Order = 0,
+            Condition = () => true,
+            Callback = () =>
+            {
+                _itemTemplatesCache = null;
+                _globalsCache = null;
+            }
+        });
     }
 
     public void LoadDataBase()
@@ -175,7 +211,7 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustMaxInRaidAndLobby()
     {
-        foreach (RestrictionsInRaid dataItem in databaseService.GetTables().Globals.Configuration.RestrictionsInRaid)
+        foreach (RestrictionsInRaid dataItem in _globalsCache!.Configuration.RestrictionsInRaid)
         {
             dataItem.MaxInRaid = Math.Max(dataItem.MaxInRaid, _modConfigData?.EnterGameItemLimit ?? dataItem.MaxInRaid);
             dataItem.MaxInLobby =
@@ -201,7 +237,7 @@ public class EasyGameMod(
     public void RemoveRestrictionOnSellingItemsInFlea()
     {
         List<MongoId> noProperties = [];
-        KeyValuePair<MongoId, TemplateItem>[] existCanSellOnRagfair = databaseService.GetItems().Where(
+        KeyValuePair<MongoId, TemplateItem>[] existCanSellOnRagfair = _itemTemplatesCache!.Where(
             x => x.Value.Properties != null && x.Value.Properties.CanSellOnRagfair == false).ToArray();
         foreach ((MongoId tpl, TemplateItem item) in existCanSellOnRagfair)
         {
@@ -276,7 +312,7 @@ public class EasyGameMod(
     /// </summary>
     public void MagazineDataModification()
     {
-        Globals globals = databaseService.GetGlobals();
+        Globals globals = _globalsCache!;
         globals.Configuration.BaseCheckTime *= _modConfigData?.CheckAmmoTimeModify ?? 1.0d;
         globals.Configuration.BaseLoadTime *= _modConfigData?.TakeInAmmoTimeModify ?? 1.0d;
         globals.Configuration.BaseUnloadTime *= _modConfigData?.TakeOutAmmoTimeModify ?? 1.0d;
@@ -288,7 +324,7 @@ public class EasyGameMod(
     /// </summary>
     public void FleaPendingOrderLimitModification()
     {
-        Globals globals = databaseService.GetGlobals();
+        Globals globals = _globalsCache!;
         const string result = "跳蚤挂单上限修改结果(特刊计数->挂单数量): ";
         List<string> countChange = [];
         foreach (MaxActiveOfferCount offer in globals.Configuration.RagFair.MaxActiveOfferCount)
@@ -305,7 +341,7 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustSimulator()
     {
-        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
+        Dictionary<MongoId,TemplateItem> itemTemplates = _itemTemplatesCache!;
         Dictionary<MongoId,double> itemPrices = databaseService.GetTables().Templates.Prices;
         KeyValuePair<MongoId,TemplateItem>[] simulatorItems = itemTemplates
             .Where(kvp => kvp.Value.Parent.ToString() == BaseClasses.STIMULATOR 
@@ -350,8 +386,7 @@ public class EasyGameMod(
 
     public void AllExaminedByDefault()
     {
-        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
-        KeyValuePair<MongoId,TemplateItem>[] items = itemTemplates.Where(kvp => kvp.Value.Properties?.ExaminedByDefault == false).ToArray();
+        KeyValuePair<MongoId,TemplateItem>[] items = _itemTemplatesCache!.Where(kvp => kvp.Value.Properties?.ExaminedByDefault == false).ToArray();
         ModLogger.Debug($"默认未检视物品有: {items.Length}个");
         List<MongoId> noProperties = [];
         foreach ((MongoId tpl, TemplateItem templateItem) in items)
@@ -377,7 +412,7 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustAmmoStackMaxSize()
     {
-        Dictionary<MongoId, TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
+        Dictionary<MongoId, TemplateItem> itemTemplates = _itemTemplatesCache!;
         MongoId[] ammo = itemHelper.GetItemTplsOfBaseType(BaseClasses.AMMO.ToString()).ToArray();
         ModLogger.Debug($"准备修改弹药堆叠时获取到弹药类型: {ammo.Length}个");
         List<MongoId> cantFound = [];
@@ -410,8 +445,7 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustLabsAccess()
     {
-        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
-        TemplateItem templateItem = itemTemplates[ItemTpl.KEYCARD_TERRAGROUP_LABS_ACCESS];
+        TemplateItem templateItem = _itemTemplatesCache![ItemTpl.KEYCARD_TERRAGROUP_LABS_ACCESS];
         ModLogger.Debug($"已获取到实验室访问卡: {templateItem.Id}, {templateItem.Name}, 可用次数: {templateItem.Properties?.MaximumNumberOfUsage}");
         if (templateItem.Properties != null)
         {
@@ -427,8 +461,7 @@ public class EasyGameMod(
     /// </summary>
     public void AdjustLabysAccess()
     {
-        Dictionary<MongoId,TemplateItem> itemTemplates = databaseService.GetTables().Templates.Items;
-        TemplateItem templateItem = itemTemplates[ItemTpl.KEYCARD_LABRYS_ACCESS];
+        TemplateItem templateItem = _itemTemplatesCache![ItemTpl.KEYCARD_LABRYS_ACCESS];
         ModLogger.Debug($"已获取到迷宫访问卡: {templateItem.Id}, {templateItem.Name}, 可用次数: {templateItem.Properties?.MaximumNumberOfUsage}");
         if (templateItem.Properties != null)
         {
