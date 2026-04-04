@@ -1,3 +1,6 @@
+![GitHub License](https://img.shields.io/github/license/SunYanbox/EasyGame)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/SunYanbox/EasyGame/total)
+
 ### Configuration File
 
 ```json
