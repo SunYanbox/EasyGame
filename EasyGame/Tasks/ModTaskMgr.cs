@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+
 using SuntionCore.Services.LogUtils;
 
 namespace EasyGame.Tasks;
@@ -17,7 +18,7 @@ public class ModTaskMgr
 {
     private readonly Dictionary<string, ModTask> _tasks = new();
     private readonly Dictionary<string, ModTaskStats> _tasksStats = new();
-    public static readonly ModLogger ModLogger = 
+    public static readonly ModLogger ModLogger =
         ModLogger.GetOrCreateLogger("EasyGame", logFileMaxSize: 120 * 1024);
 
     /// <summary>
@@ -30,7 +31,7 @@ public class ModTaskMgr
             ModLogger.Warn($"已添加过任务[{task}], 无法重复添加");
         }
     }
-    
+
     /// <summary>
     /// 运行所有任务
     /// </summary>
@@ -44,6 +45,17 @@ public class ModTaskMgr
             tasks.Add(Task.Run(() => { ExecuteTask(modTask.Value); }));
         }
         Task.WaitAll(tasks.ToArray());
+        stopwatch.Stop();
+        ModLogger.Debug($"运行所有任务耗时: {stopwatch.Elapsed.TotalMilliseconds:F3} ms");
+    }
+
+    /// <summary>
+    /// 获取已运行所有任务统计信息
+    /// </summary>
+    public string GetTaskStats()
+    {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
         var sb = new StringBuilder();
         sb.Append("任务统计信息:\n\t - ");
         sb.AppendJoin("\n\t - ", _tasksStats
@@ -51,8 +63,8 @@ public class ModTaskMgr
         sb.Append("\n\t * 跳过的任务: ");
         sb.AppendJoin(", ", _tasks.Keys.Where(x => !_tasksStats.ContainsKey(x)).Select(x => $"[{x}]"));
         stopwatch.Stop();
-        sb.Append($"\n\t * 运行所有任务并生成统计信息耗时: {stopwatch.Elapsed.TotalMilliseconds:F3} ms");
-        ModLogger.Info(sb.ToString());
+        sb.AppendLine($"\n\t * 生成统计信息耗时: {stopwatch.Elapsed.TotalMilliseconds:F3} ms");
+        return sb.ToString();
     }
 
     public void ExecuteTask(ModTask task)

@@ -5,7 +5,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.1.0</Version>
+        <Version>1.1.1</Version>
         <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
@@ -14,17 +14,7 @@
         <PackageReference Include="SPTarkov.Common" Version="4.0.8" />
         <PackageReference Include="SPTarkov.DI" Version="4.0.8" />
         <PackageReference Include="SPTarkov.Server.Core" Version="4.0.8" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="SuntionCore.dll">
-            <HintPath>libs\SuntionCore.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="EasyGame.csproj.user" />
+        <PackageReference Include="SuntionCore" Version="1.2.0" />
     </ItemGroup>
 
     <!-- 需要复制的数据库, 资源文件 -->
@@ -50,7 +40,10 @@
               DestinationFolder="$(BeforeZipPath)data\%(RecursiveDir)"/>
         <Copy SourceFiles="@(WWWRootPath)"
               DestinationFolder="$(BeforeZipPath)wwwroot\%(RecursiveDir)"/>
-        <Exec WorkingDirectory="$(OutputPath)" Command="$(ZipToolPath) a -tzip -mx=9 $(AssemblyName)-$(Version).7z SPT\"/>
+        <Exec
+                Condition="Exists('D:\Program Files\7-Zip\7z.exe')"
+                WorkingDirectory="$(OutputPath)"
+                Command="$(ZipToolPath) a -t7z -mx=9 $(AssemblyName)-$(Version).7z SPT\"/>
     </Target>
 
 
@@ -58,7 +51,7 @@
         <None Include="$(MSBuildProjectFullPath).user" Condition="Exists('$(MSBuildProjectFullPath).user')"/>
     </ItemGroup>
 
-    <Target Name="拷贝模组到SPT" AfterTargets="AfterBuild" Condition="'$(SPTPath)' != ''">
+    <Target Name="拷贝模组到SPT" AfterTargets="AfterBuild" Condition="'$(SPTPath)' != '' and Exists('$(SPTPath)')">
         <!-- 定义变量 -->
         <PropertyGroup>
             <SPTModPath>$(SPTPath)$(ModsDirectoryPath)</SPTModPath>

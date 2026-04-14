@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace EasyGame.Configs;
 
-record WhetherEnableFunction
+public record WhetherEnableFunction
 {
     /// <summary> 是否解除所有物品在跳蚤市场售卖限制 </summary>
     [JsonInclude]

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace EasyGame.Configs;
 
-internal record ModConfigData
+public record ModConfigData
 {
     /// <summary> 是否启用功能 </summary>
     [JsonInclude]
