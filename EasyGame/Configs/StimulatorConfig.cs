@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace EasyGame.Configs;
 
 // 模组配置
-internal record StimulatorConfig
+public record StimulatorConfig
 {
     [JsonInclude] public int UseTimes { get; set; } = 10;
     [JsonInclude] public double PriceModify { get; set; } = 5;
