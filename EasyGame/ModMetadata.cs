@@ -11,7 +11,7 @@ public record ModMetadata : AbstractModMetadata
     public override List<string>? Contributors { get; init; } = [];
     public override SemanticVersioning.Version Version { get; init; } = new("1.1.0");
     public override Range SptVersion { get; init; } = new("~4.0.4");
-    
+
     public override List<string>? Incompatibilities { get; init; }
 
     public override Dictionary<string, Range>? ModDependencies { get; init; } =

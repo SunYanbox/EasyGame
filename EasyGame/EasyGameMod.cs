@@ -30,7 +30,7 @@ public class EasyGameMod(
     private static ModLogger ModLogger => ModTaskMgr.ModLogger;
     private Dictionary<MongoId, TemplateItem>? _itemTemplatesCache;
     private Globals? _globalsCache;
-    
+
     public Task OnLoad()
     {
         LoadDataBase();
@@ -207,7 +207,7 @@ public class EasyGameMod(
             Name = "默认检视所有物品",
         });
     }
-    
+
     /// <summary>
     /// 根据自定义数据调整带入物品限制
     /// </summary>
@@ -250,7 +250,7 @@ public class EasyGameMod(
             }
             item.Properties.CanSellOnRagfair = true;
         }
-        
+
         if (noProperties.Count != 0)
         {
             ModLogger.Error("修改物品在跳蚤市场售卖限制时这些物品模板没有Properties属性信息:\n\t - " + string.Join("\n\t - ", noProperties));
@@ -337,21 +337,21 @@ public class EasyGameMod(
         }
         ModLogger.Debug(result + string.Join(", ", countChange));
     }
-    
+
     /// <summary>
     /// 修改所有药剂耐久(吗啡除外)
     /// </summary>
     public void AdjustSimulator()
     {
-        Dictionary<MongoId,TemplateItem> itemTemplates = _itemTemplatesCache!;
-        Dictionary<MongoId,double> itemPrices = databaseService.GetTables().Templates.Prices;
-        KeyValuePair<MongoId,TemplateItem>[] simulatorItems = itemTemplates
-            .Where(kvp => kvp.Value.Parent.ToString() == BaseClasses.STIMULATOR 
+        Dictionary<MongoId, TemplateItem> itemTemplates = _itemTemplatesCache!;
+        Dictionary<MongoId, double> itemPrices = databaseService.GetTables().Templates.Prices;
+        KeyValuePair<MongoId, TemplateItem>[] simulatorItems = itemTemplates
+            .Where(kvp => kvp.Value.Parent.ToString() == BaseClasses.STIMULATOR
                           && kvp.Value.Id.ToString() != ItemTpl.DRUGS_MORPHINE_INJECTOR).ToArray();
         ModLogger.Debug($"获取到的针剂数量有: {simulatorItems.Length}个");
         List<MongoId> noProperties = [];
         List<MongoId> noWeightOrMaxHpResource = [];
-        
+
         // 修改除了吗啡以外的药剂耐久
         foreach ((MongoId mongoId, TemplateItem templateItem) in simulatorItems)
         {
@@ -370,25 +370,24 @@ public class EasyGameMod(
             itemPrices.TryAdd(mongoId, 0);
             itemPrices[mongoId] *= _modConfigData?.StimulatorConfig?.PriceModify ?? 1;
         }
-        
+
         if (noProperties.Count > 0)
         {
             ModLogger.Error("修改针剂堆叠与质量时这些物品模板没有Properties属性信息:\n\t - " + string.Join("\n\t - ", noProperties));
         }
-        
+
         if (noWeightOrMaxHpResource.Count > 0)
         {
             ModLogger.Error("修改针剂堆叠与质量时这些物品模板没有质量属性(一般大于0)与针剂使用次数属性(默认 1):\n\t - " + string.Join("\n\t - ", noWeightOrMaxHpResource));
         }
 
-        ModLogger.Info($"修改针剂使用次数与质量成功率: {
-            (double)(simulatorItems.Length - noProperties.Count - noWeightOrMaxHpResource.Count) 
+        ModLogger.Info($"修改针剂使用次数与质量成功率: {(double)(simulatorItems.Length - noProperties.Count - noWeightOrMaxHpResource.Count)
             / simulatorItems.Length:P3}");
     }
 
     public void AllExaminedByDefault()
     {
-        KeyValuePair<MongoId,TemplateItem>[] items = _itemTemplatesCache!.Where(kvp => kvp.Value.Properties?.ExaminedByDefault == false).ToArray();
+        KeyValuePair<MongoId, TemplateItem>[] items = _itemTemplatesCache!.Where(kvp => kvp.Value.Properties?.ExaminedByDefault == false).ToArray();
         ModLogger.Debug($"默认未检视物品有: {items.Length}个");
         List<MongoId> noProperties = [];
         foreach ((MongoId tpl, TemplateItem templateItem) in items)
@@ -408,7 +407,7 @@ public class EasyGameMod(
 
         ModLogger.Info($"设置物品默认检视成功率: {1.0d - (double)noProperties.Count / items.Length:P3}");
     }
-    
+
     /// <summary>
     /// 修改所有弹药堆叠
     /// </summary>
@@ -457,7 +456,7 @@ public class EasyGameMod(
             ModLogger.Info($"已成功设置实验室访问卡次数为: {templateItem.Properties.MaximumNumberOfUsage}");
         }
     }
-    
+
     /// <summary>
     /// 调整迷宫访问卡次数
     /// </summary>

@@ -17,7 +17,7 @@ public class ModTaskMgr
 {
     private readonly Dictionary<string, ModTask> _tasks = new();
     private readonly Dictionary<string, ModTaskStats> _tasksStats = new();
-    public static readonly ModLogger ModLogger = 
+    public static readonly ModLogger ModLogger =
         ModLogger.GetOrCreateLogger("EasyGame", logFileMaxSize: 120 * 1024);
 
     /// <summary>
@@ -30,7 +30,7 @@ public class ModTaskMgr
             ModLogger.Warn($"已添加过任务[{task}], 无法重复添加");
         }
     }
-    
+
     /// <summary>
     /// 运行所有任务
     /// </summary>
