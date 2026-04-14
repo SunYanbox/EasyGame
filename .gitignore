@@ -8,5 +8,6 @@ riderModule.iml
 libs/
 *.csproj.user
 *.user
+TestResults/
 Properties/
 launchSettings.json
